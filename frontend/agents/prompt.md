@@ -1,0 +1,1 @@
+Create a Next.js React website with the design in the attached design file. Use Shad CN components, Tailwind CSS for styling, Framer motion for animations, and unsplash for images. Use the given image(s) of the website design for the layout.
