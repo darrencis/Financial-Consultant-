@@ -3,13 +3,6 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 
-const PERSONA_OPTIONS = [
-  { value: "student", label: "Student" },
-  { value: "employed", label: "Employed" },
-  { value: "self-employed", label: "Self-employed" },
-  { value: "retired", label: "Retired" },
-] as const;
-
 const PROVINCES = [
   "AB",
   "BC",
@@ -45,7 +38,9 @@ const inputClass =
 export default function ProfilePage() {
   const [formData, setFormData] = useState({
     name: "",
-    persona: "",
+    amount: 0,
+    source: "",
+    notes: "",
     annual_income: 0,
     province: "",
     age: 0,
@@ -103,26 +98,57 @@ export default function ProfilePage() {
 
             <div>
               <label
-                htmlFor="persona"
+                htmlFor="amount"
                 className="mb-2 block text-sm font-medium text-[var(--color-neutral-700)]"
               >
-                Persona
+                Amount ($)
               </label>
-              <select
-                id="persona"
-                value={formData.persona}
+              <input
+                id="amount"
+                type="number"
+                min={0}
+                step={0.01}
+                value={formData.amount || ""}
                 onChange={(e) =>
-                  updateField("persona", e.target.value as (typeof formData)["persona"])
+                  updateField("amount", parseFloat(e.target.value) || 0)
                 }
                 className={inputClass}
+                placeholder="0"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="source"
+                className="mb-2 block text-sm font-medium text-[var(--color-neutral-700)]"
               >
-                <option value="">Select persona</option>
-                {PERSONA_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+                Source
+              </label>
+              <input
+                id="source"
+                type="text"
+                value={formData.source}
+                onChange={(e) => updateField("source", e.target.value)}
+                className={inputClass}
+                placeholder="e.g. Employment, investments, side income"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="notes"
+                className="mb-2 block text-sm font-medium text-[var(--color-neutral-700)]"
+              >
+                Notes
+              </label>
+              <textarea
+                id="notes"
+                rows={3}
+                value={formData.notes}
+                onChange={(e) => updateField("notes", e.target.value)}
+                className={inputClass}
+                placeholder="Additional notes"
+              />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
