@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 // Inline icons (no lucide-react dependency)
 function IconDollarSign({ className, ...props }: React.SVGProps<SVGSVGElement>) {
   return (
@@ -150,9 +152,9 @@ export default function DashboardPage() {
       style={{ fontFamily: "var(--font-sans), Inter, system-ui, sans-serif" }}
     >
       <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[1fr_280px]">
-        {/* Left: Balance + Graph + Button */}
+        {/* Left column: Balance, Chart, Button */}
         <div className="flex flex-col gap-6">
-          {/* Top row: Balance (left) + Health Gauge (right) */}
+          {/* Top row: Balance (left) + Health Score Gauge (right) */}
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="rounded-[var(--radius-lg)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-md)]">
               <p className="mb-1 text-sm font-medium text-[var(--color-neutral-700)]">
@@ -177,7 +179,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Graph card */}
+          {/* Balance Overview chart */}
           <div className="flex-1 rounded-[var(--radius-lg)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-md)]">
             <h2 className="mb-4 text-lg font-semibold text-[var(--color-neutral-900)]">
               Balance overview
@@ -187,20 +189,60 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Bottom right: New Charts button */}
+          {/* Top Spending (Student Insights) - below chart */}
+          <div className="rounded-[var(--radius-lg)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-md)] lg:hidden">
+            <h2 className="mb-4 text-lg font-semibold text-[var(--color-neutral-900)]">
+              Top Spending
+            </h2>
+            <p className="mb-4 text-xs text-[var(--color-neutral-500)]">
+              Student insights
+            </p>
+            <ul className="space-y-5">
+              {TOP_SPENDING.map((item) => (
+                <li key={item.label}>
+                  <div className="mb-1.5 flex justify-between text-sm">
+                    <span className="font-medium text-[var(--color-neutral-900)]">
+                      {item.label}
+                    </span>
+                    <span className="text-[var(--color-neutral-700)]">
+                      ${item.amount.toLocaleString()} / ${item.max.toLocaleString()}
+                    </span>
+                  </div>
+                  <div
+                    className="h-2 overflow-hidden rounded-full bg-[var(--color-neutral-200)]"
+                    role="progressbar"
+                    aria-valuenow={item.amount}
+                    aria-valuemin={0}
+                    aria-valuemax={item.max}
+                    aria-label={`${item.label} spending`}
+                  >
+                    <div
+                      className="h-full rounded-full transition-[width] duration-300"
+                      style={{
+                        width: `${Math.min(100, (item.amount / item.max) * 100)}%`,
+                        backgroundColor: item.color,
+                      }}
+                    />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* New Charts ⊕ button */}
           <div className="flex justify-end">
-            <button
-              type="button"
+            <Link
+              href="/dashboard/new-chart"
               className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-primary-500)] px-6 py-3 text-sm font-semibold text-[var(--color-surface)] shadow-[var(--shadow-md)] transition-[transform,box-shadow] duration-200 ease-in-out hover:bg-[var(--color-primary-600)] hover:-translate-y-0.5 hover:shadow-[0_6px_24px_rgba(30,27,75,0.08)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:ring-offset-2 active:scale-[0.98]"
             >
               New Charts
               <IconPlus className="h-5 w-5" aria-hidden />
-            </button>
+            </Link>
           </div>
         </div>
 
-        {/* Right: Top Spending sidebar (Student Insights) */}
-        <aside className="lg:order-none">
+        {/* Right column: Top Spending sidebar (desktop) */}
+        <aside className="hidden lg:block">
           <div className="sticky top-6 rounded-[var(--radius-lg)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-md)]">
             <h2 className="mb-4 text-lg font-semibold text-[var(--color-neutral-900)]">
               Top Spending
