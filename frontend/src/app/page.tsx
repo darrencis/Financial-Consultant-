@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 type OccupationOption = "student" | "unemployed" | "employed" | null;
 
 const OPTIONS = [
-  { id: "student" as const, label: "A Student", emphasized: true },
-  { id: "unemployed" as const, label: "Unemployed", emphasized: false },
-  { id: "employed" as const, label: "Employed", emphasized: false },
+  { id: "student" as const, label: "A Student" },
+  { id: "unemployed" as const, label: "Unemployed" },
+  { id: "employed" as const, label: "Employed" },
 ] as const;
 
 export default function HomePage() {
@@ -53,30 +53,6 @@ export default function HomePage() {
                     : "border-[var(--color-neutral-200)] shadow-[0_4px_20px_rgba(30,27,75,0.04)] hover:border-[var(--color-neutral-500)] hover:shadow-[0_6px_24px_rgba(30,27,75,0.06)]"
                 }`}
               >
-                {option.emphasized && (
-                  <span
-                    className="absolute -right-1.5 -top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-primary-500)] text-white shadow-md"
-                    title="Recommended"
-                    aria-hidden
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 12 12"
-                      fill="none"
-                      className="translate-x-0.5"
-                      aria-hidden
-                    >
-                      <path
-                        d="M2 6h8M6 2l4 4-4 4"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </span>
-                )}
                 <span
                   className={`text-lg font-semibold transition-colors duration-300 ${
                     isSelected

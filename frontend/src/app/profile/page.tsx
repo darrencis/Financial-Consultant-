@@ -167,7 +167,7 @@ export default function ProfilePage() {
                 htmlFor="amount"
                 className="mb-2 block text-sm font-medium text-[var(--color-neutral-700)]"
               >
-                Amount ($)
+                Income Generated ($)
               </label>
               <input
                 id="amount"
@@ -188,7 +188,7 @@ export default function ProfilePage() {
                 htmlFor="source"
                 className="mb-2 block text-sm font-medium text-[var(--color-neutral-700)]"
               >
-                Source
+                Income Source
               </label>
               <input
                 id="source"
