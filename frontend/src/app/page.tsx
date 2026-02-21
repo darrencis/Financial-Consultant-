@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type OccupationOption = "student" | "unemployed" | "employed" | null;
 
@@ -12,6 +13,14 @@ const OPTIONS = [
 
 export default function HomePage() {
   const [selected, setSelected] = useState<OccupationOption>(null);
+  const router = useRouter();
+
+  const handleContinue = () => {
+    if (selected) {
+      localStorage.setItem("persona", selected);
+      router.push("/profile");
+    }
+  };
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-[var(--color-background)] font-sans px-8 py-12">
@@ -107,6 +116,7 @@ export default function HomePage() {
           <button
             type="button"
             disabled={selected === null}
+            onClick={handleContinue}
             className={`w-full rounded-lg px-6 py-4 text-base font-semibold text-white transition-all duration-300 ease-out disabled:cursor-not-allowed disabled:opacity-45 disabled:shadow-none ${
               selected !== null
                 ? "bg-[var(--color-primary-500)] shadow-[0_4px_14px_rgba(59,50,255,0.35)] hover:-translate-y-0.5 hover:bg-[var(--color-primary-600)] hover:shadow-[0_8px_24px_rgba(59,50,255,0.4)] active:translate-y-0"

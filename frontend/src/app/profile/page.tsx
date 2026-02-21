@@ -1,7 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+const API_BASE = "http://localhost:8000";
 
 const PROVINCES = [
   "AB",
@@ -36,6 +39,10 @@ const inputClass =
   "w-full rounded-lg border border-[var(--color-neutral-200)] bg-[var(--color-surface)] px-4 py-3 text-sm font-medium text-[var(--color-neutral-900)] placeholder:text-[var(--color-neutral-500)] focus:border-[var(--color-primary-500)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/40";
 
 export default function ProfilePage() {
+  const router = useRouter();
+  const [persona, setPersona] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     amount: 0,
@@ -52,6 +59,64 @@ export default function ProfilePage() {
     rrsp_room: 0,
   });
 
+  useEffect(() => {
+    const saved = localStorage.getItem("persona");
+    if (saved) setPersona(saved);
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const userRes = await fetch(`${API_BASE}/api/users`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          persona: persona || "employed",
+          annual_income: formData.annual_income,
+          province: formData.province,
+          age: formData.age,
+          financial_goals: formData.financial_goals,
+          existing_savings: formData.existing_savings,
+          monthly_rent: formData.monthly_rent,
+          monthly_expenses: formData.monthly_expenses,
+          tfsa_room: formData.tfsa_room,
+          rrsp_room: formData.rrsp_room,
+        }),
+      });
+      if (!userRes.ok) throw new Error("Failed to create profile");
+      const userData = await userRes.json();
+      const userId = userData.id;
+      localStorage.setItem("user_id", userId);
+
+      const inflowRes = await fetch(
+        `${API_BASE}/api/users/${userId}/inflows`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            amount: formData.amount,
+            source: formData.source,
+            notes: formData.notes,
+          }),
+        }
+      );
+      if (!inflowRes.ok) throw new Error("Failed to record income");
+      const inflowData = await inflowRes.json();
+      localStorage.setItem("inflow_id", inflowData.id);
+      localStorage.setItem("inflow_amount", String(formData.amount));
+
+      router.push("/suggestions");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const updateField = <K extends keyof typeof formData>(
     field: K,
     value: (typeof formData)[K]
@@ -66,6 +131,7 @@ export default function ProfilePage() {
     >
       <div className="mx-auto max-w-2xl">
         <motion.form
+          onSubmit={handleSubmit}
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -334,6 +400,23 @@ export default function ProfilePage() {
                 />
               </div>
             </div>
+            {error && (
+              <div className="rounded-lg bg-[#FEE2E2] px-4 py-3 text-sm font-medium text-[var(--color-error-500)]">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full rounded-lg px-6 py-4 text-base font-semibold text-white transition-all duration-300 ease-out disabled:cursor-not-allowed disabled:opacity-60 ${
+                loading
+                  ? "bg-[var(--color-neutral-500)]"
+                  : "bg-[var(--color-primary-500)] shadow-[0_4px_14px_rgba(59,50,255,0.35)] hover:-translate-y-0.5 hover:bg-[var(--color-primary-600)] hover:shadow-[0_8px_24px_rgba(59,50,255,0.4)] active:translate-y-0"
+              }`}
+            >
+              {loading ? "Submitting..." : "Get Suggestions"}
+            </button>
           </motion.section>
         </motion.form>
       </div>
