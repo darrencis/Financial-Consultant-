@@ -19,3 +19,17 @@
   --shadow-sm: 0 2px 4px rgba(30, 27, 75, 0.02);
   --shadow-md: 0 4px 20px rgba(30, 27, 75, 0.04);
 }
+
+:root {
+  --color-primary-500: #3b32ff;
+  --color-primary-600: #2c25cc;
+  --color-neutral-900: #1e1b4b;
+  --color-neutral-700: #475569;
+  --color-neutral-500: #94a3b8;
+  --color-neutral-200: #e2e8f0;
+  --color-background: #f4f7fe;
+  --color-surface: #ffffff;
+  --color-success-500: #10b981;
+  --color-error-500: #ef4444;
+  --shadow-md: 0 4px 20px rgba(30, 27, 75, 0.04);
+}
