@@ -48,6 +48,16 @@ class CashInflowCreate(BaseModel):
     notes: str = ""
 
 
+class QuickRecommendInput(BaseModel):
+    """Single form: name, age, province + income this week + notes → get suggestions."""
+
+    name: str = Field(..., min_length=1)
+    age: int = Field(25, ge=18, le=70)
+    province: str = Field("BC", description="Province code (BC, ON, QC, etc.)")
+    salary_amount: float = Field(..., gt=0, description="Income this week in CAD")
+    notes: str = Field("", description="Additional context for recommendations")
+
+
 class CashInflow(CashInflowCreate):
     id: str
     user_id: str
@@ -82,6 +92,12 @@ class RecommendationsResponse(BaseModel):
         "Educational simulation. Not financial advice. "
         "Past rates do not guarantee future returns."
     )
+
+
+class QuickRecommendResponse(RecommendationsResponse):
+    """Includes user_id for commit flow."""
+
+    user_id: str
 
 
 class CommitDecisionCreate(BaseModel):

@@ -11,7 +11,27 @@ cp .env.example .env   # Set OPENAI_API_KEY
 uvicorn main:app --reload --port 8000
 ```
 
-## Postman Test Flow
+## Quick Recommend (Single Form)
+
+One call: name, age, province, salary amount, notes → get AI recommendations.
+
+**POST** `http://localhost:8000/api/quick-recommend`
+
+```json
+{
+  "name": "John",
+  "age": 28,
+  "province": "BC",
+  "salary_amount": 5000,
+  "notes": "Monthly paycheck"
+}
+```
+
+Response includes `user_id`, `inflow_id`, `cards`. Use `user_id` and `inflow_id` for commit.
+
+---
+
+## Postman Test Flow (Full)
 
 1. **POST** `http://localhost:8000/api/users`  
    Body: `{"name":"John","persona":"employed","annual_income":72000,"province":"BC","age":28,"financial_goals":"Save for a house","existing_savings":5000,"monthly_rent":2000,"monthly_expenses":500,"tfsa_room":7000,"rrsp_room":15000}`  

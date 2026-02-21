@@ -11,6 +11,8 @@ from engine.models import (
     UserProfile,
     CashInflowCreate,
     CashInflow,
+    QuickRecommendInput,
+    QuickRecommendResponse,
     CommitDecisionCreate,
     CommittedDecision,
     RecommendationCard,
@@ -19,6 +21,7 @@ from engine.models import (
     LiveRates,
     AccountType,
     PortfolioItem,
+    Persona,
 )
 from engine.rates import fetch_live_rates
 from engine.agents import run_recommendation_agent, RecommendationDeps
@@ -67,6 +70,106 @@ async def get_user(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
+
+@router.post("/quick-recommend", response_model=QuickRecommendResponse)
+async def quick_recommend(
+    data: QuickRecommendInput,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Single form: name, age, province, salary_amount, notes.
+    Creates user + inflow, returns AI recommendations in one call.
+    """
+    profile_data = UserProfileCreate(
+        name=data.name,
+        persona=Persona.EMPLOYED,
+        annual_income=data.salary_amount * 52,
+        province=data.province,
+        age=data.age,
+        financial_goals="",
+        existing_savings=0,
+        monthly_rent=0,
+        monthly_expenses=0,
+        tfsa_room=7000,
+        rrsp_room=0,
+    )
+    user = await crud.create_user(db, profile_data)
+    inflow = await crud.create_inflow(
+        db,
+        user.id,
+        CashInflowCreate(amount=data.salary_amount, source="", notes=data.notes),
+    )
+
+    rates = await fetch_live_rates()
+    decisions = await crud.get_user_decisions(db, user.id)
+    portfolio_items = calculate_portfolio_value(decisions, user.province)
+    portfolio_summary = (
+        ", ".join(f"{p.account_type.value}: ${p.current_value:,.0f}" for p in portfolio_items)
+        if portfolio_items
+        else "No investments yet"
+    )
+
+    deps = RecommendationDeps(
+        profile=user,
+        inflow_amount=inflow.amount,
+        inflow_notes=inflow.notes,
+        rates=rates,
+        portfolio_summary=portfolio_summary,
+    )
+
+    try:
+        ai_output = await run_recommendation_agent(deps)
+    except ValueError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Recommendation failed: {str(e)}")
+
+    rate_map = {
+        "tfsa": rates.etf_vgro_ytd,
+        "rrsp": rates.etf_vgro_ytd,
+        "hisa": rates.hisa_rate,
+        "gic": rates.gic_1yr_rate,
+        "etf": rates.etf_vgro_ytd,
+        "cash": 0.0,
+    }
+
+    cards = []
+    for i, rec in enumerate(ai_output.recommendations):
+        acct = AccountType(rec.account_type.lower())
+        rate = rate_map.get(rec.account_type.lower(), rates.hisa_rate)
+        proj = project_option(
+            inflow.amount * (rec.suggested_allocation_pct / 100),
+            acct,
+            rate,
+            user.province,
+        )
+        cards.append(
+            RecommendationCard(
+                card_id=f"{inflow.id}-card-{i}",
+                title=rec.title,
+                account_type=acct,
+                suggested_amount=inflow.amount * (rec.suggested_allocation_pct / 100),
+                annual_return_pct=rate,
+                headline=rec.headline,
+                pros=rec.pros,
+                cons=rec.cons,
+                projection_1yr=proj["projection_1yr"],
+                projection_5yr=proj["projection_5yr"],
+                projection_10yr=proj["projection_10yr"],
+                risk_score=rec.risk_score,
+                is_recommended=rec.is_recommended,
+                rationale=rec.rationale,
+            )
+        )
+
+    return QuickRecommendResponse(
+        user_id=user.id,
+        inflow_id=inflow.id,
+        cards=cards,
+        summary=ai_output.summary,
+        generated_at=datetime.utcnow(),
+    )
 
 
 @router.post("/users/{user_id}/inflows", response_model=CashInflow)
